@@ -12,7 +12,7 @@ export RUSTC_BOOTSTRAP := 1
 CARGOFLAGS += -Zbuild-std=std,panic_abort
 endif
 
-.PHONY: all wasm test smoke lint package clean
+.PHONY: all wasm test smoke lint package clean bump-minor
 all: wasm
 
 wasm: $(PKG)/qrqrqr_bg.wasm
@@ -44,3 +44,17 @@ package: wasm
 
 clean:
 	rm -rf target $(PKG) dist
+
+# Bump the minor version (X.Y.Z -> X.(Y+1).0) in the manifest, Cargo.toml and Cargo.lock,
+# then print the command that tags and pushes the release (the tag triggers release.yml).
+bump-minor:
+	@cur=$$(sed -n 's/^ *"version": *"\([0-9.]*\)".*/\1/p' extension/manifest.json | head -1); \
+	new=$$(echo $$cur | awk -F. '{printf "%d.%d.0", $$1, $$2+1}'); \
+	[ -n "$$cur" ] || { echo "version not found in extension/manifest.json" >&2; exit 1; }; \
+	sed -i "s/^\( *\"version\": *\)\"$$cur\"/\1\"$$new\"/" extension/manifest.json; \
+	sed -i "0,/^version = \"$$cur\"/s//version = \"$$new\"/" Cargo.toml; \
+	sed -i "/^name = \"qrqrqr\"/{n;s/^version = .*/version = \"$$new\"/}" Cargo.lock; \
+	echo "$$cur -> $$new"; \
+	echo; \
+	echo "Review with 'git diff', then release with:"; \
+	echo "  git commit -am 'v$$new' && git tag v$$new && git push --follow-tags"
