@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "qrqrqr – offline QR scanner",
+  "short_name": "qrqrqr",
+  "version": "0.1.0",
+  "description": "Click the toolbar button, show a QR code to your camera, get copyable text. Decoding runs locally in WebAssembly; nothing leaves your machine.",
+  "homepage_url": "https://github.com/fenollp/qrqrqr",
+  "icons": {
+    "48": "icons/icon.svg",
+    "96": "icons/icon.svg"
+  },
+  "action": {
+    "default_title": "Scan a QR code",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon.svg",
+      "32": "icons/icon.svg"
+    }
+  },
+  "permissions": [],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'none'; connect-src 'self'; default-src 'self'; img-src 'self'; media-src 'self' blob: mediastream:"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "qrqrqr@fenollp.github.io",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    },
+    "gecko_android": {
+      "strict_min_version": "142.0"
+    }
+  }
+}

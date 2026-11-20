@@ -1,0 +1,77 @@
+name: Publish to addons.mozilla.org
+
+# Push a tag like v0.1.0 (matching extension/manifest.json "version") to publish.
+# Required repository secrets (https://addons.mozilla.org/developers/addon/api/key/):
+#   AMO_JWT_ISSUER  – "JWT issuer"
+#   AMO_JWT_SECRET  – "JWT secret"
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write # to create the GitHub release
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check tag matches manifest and Cargo versions
+        if: github.ref_type == 'tag'
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          manifest=$(jq -r .version extension/manifest.json)
+          cargo=$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)
+          echo "tag=$tag manifest=$manifest cargo=$cargo"
+          [ "$tag" = "$manifest" ] && [ "$tag" = "$cargo" ]
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-bindgen-cli@0.2.100
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Test and build
+        run: |
+          cargo test --release
+          ./scripts/build.sh
+          npm i --no-save qrcode
+          node scripts/wasm-smoke-test.mjs
+          npx --yes web-ext@10 lint --source-dir extension
+
+      - name: Package extension and source
+        run: |
+          mkdir -p dist
+          npx --yes web-ext@10 build --source-dir extension --artifacts-dir dist --overwrite-dest
+          # AMO requires the source of compiled code (the .wasm) for review.
+          git archive --format=zip --prefix=qrqrqr-src/ -o dist/qrqrqr-source.zip HEAD
+
+      - name: Submit to AMO (listed)
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          npx --yes web-ext@10 sign \
+            --source-dir extension \
+            --artifacts-dir dist \
+            --channel listed \
+            --amo-metadata amo-metadata.json \
+            --upload-source-code dist/qrqrqr-source.zip \
+            --approval-timeout 0
+
+      - name: GitHub release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/*.zip \
+            --title "qrqrqr $GITHUB_REF_NAME" \
+            --notes "Submitted to addons.mozilla.org for review. The zip here is the unsigned build (load via about:debugging) plus the source archive given to AMO reviewers."

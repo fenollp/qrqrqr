@@ -1,0 +1,19 @@
+{
+  "categories": {
+    "firefox": ["other"],
+    "android": ["other"]
+  },
+  "summary": {
+    "en-US": "Click the toolbar button, show a QR code to your camera, get copyable text. Fully offline: decoding runs locally in Rust/WebAssembly."
+  },
+  "description": {
+    "en-US": "qrqrqr scans QR codes with your webcam straight from the toolbar and shows the decoded text in a box you can copy or edit.\n\n• Works offline: the decoder (the Rust crate rqrr, compiled to WebAssembly) ships inside the extension.\n• No permissions, no network requests, no data collection.\n• Reads inverted (light-on-dark) codes too.\n• Pick between several cameras.\n\nFirst use: Firefox cannot show the camera permission prompt inside a toolbar popup, so qrqrqr offers to open itself in a tab once. Allow the camera there and tick “Remember this decision”.\n\nSource code and build instructions: https://github.com/fenollp/qrqrqr"
+  },
+  "homepage": {
+    "en-US": "https://github.com/fenollp/qrqrqr"
+  },
+  "version": {
+    "license": "MIT",
+    "approval_notes": "The .wasm file is compiled from the Rust code in src/lib.rs (attached source zip). Build: install Rust stable + `rustup target add wasm32-unknown-unknown` + `cargo install wasm-bindgen-cli --version 0.2.100`, then run ./scripts/build.sh. Output goes to extension/pkg/. The camera permission is a web permission requested via getUserMedia; there are no extension permissions."
+  }
+}
