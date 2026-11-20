@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "qrqrqr – offline QR scanner",
   "short_name": "qrqrqr",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Click the toolbar button, point a code at your camera, get a list of copyable scans. Decoding runs locally in WebAssembly; nothing leaves your machine.",
   "homepage_url": "https://github.com/fenollp/qrqrqr",
   "icons": {
