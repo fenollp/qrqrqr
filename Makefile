@@ -53,7 +53,7 @@ $(PKG)/qrqrqr_bg.wasm: $(WASM)
 	    --enable-mutable-globals --enable-multivalue --enable-reference-types \
 	    $@ -o $@; \
 	fi
-	ls -l $(PKG)
+	ls -lh $(PKG)
 
 test:
 	cargo test --release
