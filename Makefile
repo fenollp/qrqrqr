@@ -1,5 +1,7 @@
 # Build the Rust decoder to wasm and lay it out in extension/pkg/.
 # Requires: rustup target wasm32-unknown-unknown, wasm-bindgen-cli matching Cargo.toml.
+# wasm-opt (binaryen) is optional: `sudo apt install binaryen`. Do not use --all-features:
+# it emits modules Firefox/Node reject.
 # BUILD_STD=1 is for toolchains without a prebuilt wasm32 std (needs rust-src).
 
 WASM := target/wasm32-unknown-unknown/release/qrqrqr.wasm
@@ -48,6 +50,7 @@ $(PKG)/qrqrqr_bg.wasm: $(WASM)
 	wasm-bindgen --target web --no-typescript --out-dir $(PKG) $(WASM)
 	if command -v wasm-opt >/dev/null; then \
 	  wasm-opt -Os --enable-bulk-memory --enable-nontrapping-float-to-int --enable-sign-ext --enable-simd \
+	    --enable-mutable-globals --enable-multivalue --enable-reference-types \
 	    $@ -o $@; \
 	fi
 	ls -l $(PKG)
