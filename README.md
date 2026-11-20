@@ -1,7 +1,7 @@
 # qrqrqr
 > Firefox extension on your laptop that reads QR codes off your phone to eg. copy WiFi passwords
 
-Click the toolbar button and hold a QR code up to your webcam. The decoded text appears in a box you can copy or edit.
+Click the toolbar button and point a code at your webcam. Scans pile up in a list under the live camera view, newest first, each with a copy and a delete button. The list is kept in the extension's local storage (never synced).
 
 - **Offline.** The decoder is [`rqrr`](https://crates.io/crates/rqrr), compiled from Rust to WebAssembly and bundled with the extension. Nothing is downloaded or sent anywhere.
 - **No extension permissions.** The camera is requested with the standard `getUserMedia` prompt.
@@ -16,8 +16,8 @@ Firefox can't show its camera permission prompt inside a toolbar popup. The firs
 ```sh
 rustup target add wasm32-unknown-unknown
 cargo install wasm-bindgen-cli --version 0.2.100   # must match Cargo.toml
-cargo test --release
-./scripts/build.sh                                  # -> extension/pkg/
+make test
+make                                                 # -> extension/pkg/
 ```
 
 Try it in Firefox: open `about:debugging#/runtime/this-firefox`, choose **Load Temporary Add-on…**, and pick `extension/manifest.json`.
@@ -53,7 +53,7 @@ The workflow doesn't wait for review (`--approval-timeout 0`). Mozilla emails yo
 ```
 src/lib.rs                 Rust decoder: RGBA frame -> Option<String> (+ unit tests)
 extension/                 the add-on (manifest, popup UI); pkg/ is generated
-scripts/build.sh           cargo build + wasm-bindgen (+ wasm-opt if installed)
+Makefile                   cargo build + wasm-bindgen (+ wasm-opt if installed); make test/smoke/lint/package
 scripts/wasm-smoke-test.mjs  loads the built wasm in Node and decodes a generated code
 amo-metadata.json          AMO listing (summary, category, license, reviewer notes)
 .github/workflows/         ci.yml (every push) and release.yml (tags -> AMO)

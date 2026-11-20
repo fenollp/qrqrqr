@@ -14,11 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-unknown-unknown
-
-      - uses: Swatinem/rust-cache@v2
+      - uses: ./.github/actions/setup-rust
 
       - uses: taiki-e/install-action@v2
         with:
@@ -29,21 +25,19 @@ jobs:
           node-version: 22
 
       - name: Rust tests
-        run: cargo test --release
+        run: make test
 
       - name: Build wasm
-        run: ./scripts/build.sh
+        run: make wasm
 
       - name: Wasm smoke test
-        run: |
-          npm i --no-save qrcode
-          node scripts/wasm-smoke-test.mjs
+        run: make smoke
 
       - name: web-ext lint
-        run: npx --yes web-ext@10 lint --source-dir extension
+        run: make lint
 
       - name: Package
-        run: npx --yes web-ext@10 build --source-dir extension --artifacts-dir dist --overwrite-dest
+        run: make package
 
       - uses: actions/upload-artifact@v4
         with:

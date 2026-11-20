@@ -24,14 +24,12 @@
       </div>
     </section>
 
-    <section id="result" hidden>
-      <label for="text">Decoded text</label>
-      <textarea id="text" rows="5" spellcheck="false"></textarea>
-      <div class="row buttons">
-        <button id="copy" type="button" class="primary">Copy</button>
-        <a id="open-link" hidden target="_blank" rel="noopener noreferrer">Open link</a>
-        <button id="again" type="button">Scan again</button>
+    <section id="history" hidden>
+      <div class="row head">
+        <h2>Scanned</h2>
+        <button id="clear" type="button" class="small">Clear all</button>
       </div>
+      <ul id="list"></ul>
     </section>
   </main>
 </body>

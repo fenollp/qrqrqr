@@ -27,9 +27,7 @@ jobs:
           echo "tag=$tag manifest=$manifest cargo=$cargo"
           [ "$tag" = "$manifest" ] && [ "$tag" = "$cargo" ]
 
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-unknown-unknown
+      - uses: ./.github/actions/setup-rust
 
       - uses: taiki-e/install-action@v2
         with:
@@ -41,11 +39,7 @@ jobs:
 
       - name: Test and build
         run: |
-          cargo test --release
-          ./scripts/build.sh
-          npm i --no-save qrcode
-          node scripts/wasm-smoke-test.mjs
-          npx --yes web-ext@10 lint --source-dir extension
+          make test wasm smoke lint
 
       - name: Package extension and source
         run: |

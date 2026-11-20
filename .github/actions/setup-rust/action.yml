@@ -1,0 +1,41 @@
+name: Set up Rust
+description: Install the Rust toolchain with rustup (cached), plus cached cargo deps and target dir.
+runs:
+  using: composite
+  steps:
+    - id: week
+      shell: bash
+      # Rotate the toolchain cache weekly so `stable` doesn't go stale forever.
+      run: echo "week=$(date -u +%G-%V)" >> "$GITHUB_OUTPUT"
+
+    - name: Cache rustup toolchain
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.rustup
+          ~/.cargo/bin
+        key: rustup-${{ runner.os }}-stable-wasm32-${{ steps.week.outputs.week }}
+
+    - name: Install toolchain with rustup
+      shell: bash
+      run: |
+        rustup toolchain install stable --profile minimal --target wasm32-unknown-unknown --no-self-update
+        rustup default stable
+
+    - name: Cache cargo dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry/index
+          ~/.cargo/registry/cache
+          ~/.cargo/git/db
+        key: cargo-deps-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
+        restore-keys: cargo-deps-${{ runner.os }}-
+
+    - name: Cache target dir
+      uses: actions/cache@v4
+      with:
+        path: target
+        key: cargo-target-${{ runner.os }}-${{ steps.week.outputs.week }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'src/**') }}
+        restore-keys: |
+          cargo-target-${{ runner.os }}-${{ steps.week.outputs.week }}-

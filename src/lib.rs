@@ -3,7 +3,7 @@
 //! The JS side grabs a camera frame into a canvas and passes its raw RGBA
 //! pixels here. Everything runs locally; no network access is involved.
 
-use wasm_bindgen::prelude::*;
+use wasm_bindgen::prelude::wasm_bindgen;
 
 /// Convert RGBA pixels to 8-bit luma (BT.601 integer approximation).
 fn to_luma(rgba: &[u8], width: usize, height: usize) -> Vec<u8> {
@@ -47,7 +47,7 @@ pub fn decode_rgba(rgba: &[u8], width: u32, height: u32) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::decode_rgba;
     use qrcode::{Color, QrCode};
 
     fn render(text: &str, invert: bool) -> (Vec<u8>, u32, u32) {
