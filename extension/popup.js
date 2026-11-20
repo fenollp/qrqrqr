@@ -285,6 +285,40 @@ $("open-tab").addEventListener("click", async () => {
   window.close();
 });
 
+// Dev mode (options page): press "c" to save the full camera frame and the exact OCR region
+// (as fed to the OCR) as PNGs in Downloads, to collect test frames.
+function savePng(canvas, name) {
+  canvas.toBlob((blob) => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+  }, "image/png");
+}
+
+function captureFrames() {
+  const vw = video.videoWidth, vh = video.videoHeight;
+  if (!stream || !vw || !vh) return;
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const full = document.createElement("canvas");
+  full.width = vw;
+  full.height = vh;
+  full.getContext("2d").drawImage(video, 0, 0);
+  const { w, h } = drawOcrRoi();
+  savePng(full, `qrqrqr-${stamp}-frame-${vw}x${vh}.png`);
+  savePng(ocrCanvas, `qrqrqr-${stamp}-roi-${w}x${h}.png`);
+  setStatus(`Saved frame (${vw}×${vh}) and OCR region (${w}×${h}) to Downloads.`);
+}
+
+if (DEV) {
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "c" && !e.ctrlKey && !e.metaKey && !e.altKey && !e.repeat) captureFrames();
+  });
+}
+
 window.addEventListener("pagehide", () => {
   stopCamera();
   ocr?.worker.terminate();
