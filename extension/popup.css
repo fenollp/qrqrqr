@@ -101,3 +101,7 @@ button {
 }
 button.icon { padding: 2px 7px; flex: none; }
 button.small { padding: 2px 8px; font-size: 12px; }
+
+main.options { width: 420px; display: grid; gap: 10px; }
+label.check { display: flex; gap: 8px; align-items: flex-start; margin: 0; color: var(--fg); }
+kbd { border: 1px solid var(--border); border-radius: 3px; padding: 0 4px; font: inherit; }

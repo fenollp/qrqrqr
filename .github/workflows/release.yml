@@ -44,7 +44,7 @@ jobs:
       - name: Package extension and source
         run: |
           mkdir -p dist
-          npx --yes web-ext@10 build --source-dir extension --artifacts-dir dist --overwrite-dest
+          make package
           # AMO requires the source of compiled code (the .wasm) for review.
           git archive --format=zip --prefix=qrqrqr-src/ -o dist/qrqrqr-source.zip HEAD
 

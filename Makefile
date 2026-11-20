@@ -12,8 +12,31 @@ export RUSTC_BOOTSTRAP := 1
 CARGOFLAGS += -Zbuild-std=std,panic_abort
 endif
 
-.PHONY: all wasm test smoke lint package clean bump-minor
-all: wasm
+.PHONY: all wasm models test smoke lint package clean bump-minor
+all: wasm models
+
+# OCR models (CC-BY-SA 4.0, https://github.com/robertknight/ocrs-models), fetched at *build*
+# time, checksum-verified, and shipped inside the extension. They are never downloaded at runtime.
+MODELS_URL := https://huggingface.co/robertknight/ocrs/resolve/main
+MODEL_DIR  := extension/models
+DET_SRC := text-detection-ssfbcj81.rten
+DET_SHA := 614aafabf27c94d386f7aa036c967c2e47e4b9938fa11531ca8f5698c1ca4c36
+REC_SRC := text-rec-checkpoint-s52qdbqt.rten
+REC_SHA := 606d9a0414c6b73c99df75b707c11c70d1c8b12e1d4f900922e185fc37bfca65
+
+models: $(MODEL_DIR)/text-detection.rten $(MODEL_DIR)/text-recognition.rten
+
+$(MODEL_DIR)/text-detection.rten:
+	$(call fetch,$(DET_SRC),$(DET_SHA),$@)
+$(MODEL_DIR)/text-recognition.rten:
+	$(call fetch,$(REC_SRC),$(REC_SHA),$@)
+
+define fetch
+	mkdir -p $(MODEL_DIR)
+	curl -fsSL -o $(3).tmp $(MODELS_URL)/$(1)
+	echo "$(2)  $(3).tmp" | sha256sum -c --quiet
+	mv $(3).tmp $(3)
+endef
 
 wasm: $(PKG)/qrqrqr_bg.wasm
 
@@ -24,7 +47,7 @@ $(PKG)/qrqrqr_bg.wasm: $(WASM)
 	rm -rf $(PKG)
 	wasm-bindgen --target web --no-typescript --out-dir $(PKG) $(WASM)
 	if command -v wasm-opt >/dev/null; then \
-	  wasm-opt -Os --enable-bulk-memory --enable-nontrapping-float-to-int --enable-sign-ext \
+	  wasm-opt -Os --enable-bulk-memory --enable-nontrapping-float-to-int --enable-sign-ext --enable-simd \
 	    $@ -o $@; \
 	fi
 	ls -l $(PKG)
@@ -39,11 +62,11 @@ smoke: wasm
 lint:
 	npx --yes web-ext@10 lint --source-dir extension
 
-package: wasm
+package: wasm models
 	npx --yes web-ext@10 build --source-dir extension --artifacts-dir dist --overwrite-dest
 
 clean:
-	rm -rf target $(PKG) dist
+	rm -rf target $(PKG) $(MODEL_DIR) dist
 
 # Bump the minor version (X.Y.Z -> X.(Y+1).0) in the manifest, Cargo.toml and Cargo.lock,
 # then print the command that tags and pushes the release (the tag triggers release.yml).
