@@ -1,7 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="6" fill="#0061e0"/>
+  <defs>
+    <linearGradient id="holo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff3d81"/>
+      <stop offset=".2" stop-color="#ff9a3d"/>
+      <stop offset=".4" stop-color="#e8d93a"/>
+      <stop offset=".6" stop-color="#2fd37c"/>
+      <stop offset=".8" stop-color="#2f8cff"/>
+      <stop offset="1" stop-color="#9b4dff"/>
+    </linearGradient>
+    <radialGradient id="glass" cx=".38" cy=".35" r=".75">
+      <stop offset="0" stop-color="#7fb2ff"/>
+      <stop offset=".5" stop-color="#2a2f8f"/>
+      <stop offset="1" stop-color="#0b0c2a"/>
+    </radialGradient>
+  </defs>
+  <rect width="32" height="32" rx="6" fill="url(#holo)"/>
   <g fill="#fff">
-    <path d="M6 6h8v8H6zm2 2v4h4V8zM18 6h8v8h-8zm2 2v4h4V8zM6 18h8v8H6zm2 2v4h4v-4z"/>
+    <path d="M6 6h8v8H6zm2 2v4h4V8zM6 18h8v8H6zm2 2v4h4v-4z"/>
     <path d="M18 18h3v3h-3zm5 0h3v3h-3zm-5 5h3v3h-3zm5 0h3v3h-3z"/>
   </g>
+  <!-- camera lens replacing the top-right finder square -->
+  <circle cx="22" cy="10" r="4.4" fill="#15141a"/>
+  <circle cx="22" cy="10" r="3.3" fill="none" stroke="#8a8fa8" stroke-width=".5"/>
+  <circle cx="22" cy="10" r="2.8" fill="url(#glass)"/>
+  <circle cx="22" cy="10" r="1.2" fill="#05061a"/>
+  <circle cx="20.9" cy="8.9" r=".7" fill="#fff" opacity=".9"/>
+  <circle cx="23.2" cy="11.2" r=".3" fill="#fff" opacity=".6"/>
 </svg>
