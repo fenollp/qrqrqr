@@ -39,3 +39,7 @@ runs:
         key: cargo-target-${{ runner.os }}-${{ steps.week.outputs.week }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'src/**') }}
         restore-keys: |
           cargo-target-${{ runner.os }}-${{ steps.week.outputs.week }}-
+
+    - name: Install binaryen (wasm-opt)
+      shell: bash
+      run: sudo apt-get install -y --no-install-recommends binaryen
