@@ -17,6 +17,10 @@
       "32": "icons/icon.svg"
     }
   },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
+  },
   "permissions": [],
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'none'; connect-src 'self'; default-src 'self'; img-src 'self'; media-src 'self' blob: mediastream:"

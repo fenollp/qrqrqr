@@ -12,6 +12,9 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 rqrr = "0.11"
 wasm-bindgen = "=0.2.100"
+ocrs = { version = "0.14", default-features = false, features = ["rten"] }
+rten = { version = "0.28", default-features = false, features = ["rten_format"] }
+rten-imageproc = "0.28"
 
 [dev-dependencies]
 qrcode = { version = "0.14", default-features = false }
@@ -22,3 +25,15 @@ lto = true
 codegen-units = 1
 panic = "abort"
 strip = true
+
+# The neural-network runtime is the hot path: optimise it for speed, the rest for size.
+[profile.release.package.rten]
+opt-level = 3
+[profile.release.package.rten-tensor]
+opt-level = 3
+[profile.release.package.rten-simd]
+opt-level = 3
+[profile.release.package.rten-gemm]
+opt-level = 3
+[profile.release.package.rten-vecmath]
+opt-level = 3
