@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-bindgen-cli@0.2.100
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Rust tests
+        run: cargo test --release
+
+      - name: Build wasm
+        run: ./scripts/build.sh
+
+      - name: Wasm smoke test
+        run: |
+          npm i --no-save qrcode
+          node scripts/wasm-smoke-test.mjs
+
+      - name: web-ext lint
+        run: npx --yes web-ext@10 lint --source-dir extension
+
+      - name: Package
+        run: npx --yes web-ext@10 build --source-dir extension --artifacts-dir dist --overwrite-dest
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: qrqrqr-unsigned
+          path: dist/*.zip

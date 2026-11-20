@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>qrqrqr</title>
+  <link rel="stylesheet" href="popup.css">
+  <script type="module" src="popup.js"></script>
+</head>
+<body>
+  <main>
+    <section id="scan">
+      <div class="viewport">
+        <video id="video" muted playsinline></video>
+        <div class="reticle" aria-hidden="true"></div>
+      </div>
+      <div class="row">
+        <p id="status" role="status">Starting camera…</p>
+        <select id="camera" hidden aria-label="Camera"></select>
+      </div>
+      <div id="needs-permission" hidden>
+        <p>Firefox can't ask for camera access from a toolbar popup. Open the scanner in a tab once, allow the camera and tick <b>Remember this decision</b>; the popup will work from then on.</p>
+        <button id="open-tab" type="button">Open scanner in a tab</button>
+      </div>
+    </section>
+
+    <section id="result" hidden>
+      <label for="text">Decoded text</label>
+      <textarea id="text" rows="5" spellcheck="false"></textarea>
+      <div class="row buttons">
+        <button id="copy" type="button" class="primary">Copy</button>
+        <a id="open-link" hidden target="_blank" rel="noopener noreferrer">Open link</a>
+        <button id="again" type="button">Scan again</button>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
