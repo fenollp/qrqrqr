@@ -2,7 +2,7 @@
 // Usage: node scripts/wasm-smoke-test.mjs   (after scripts/build.sh; needs `npm i --no-save qrcode`)
 import { readFile } from "node:fs/promises";
 import QRCode from "qrcode";
-import { initSync, decode_rgba } from "../extension/pkg/qrqrqr.js";
+import { initSync, decode_rgba, DigitReader } from "../extension/pkg/qrqrqr.js";
 
 initSync({ module: await readFile(new URL("../extension/pkg/qrqrqr_bg.wasm", import.meta.url)) });
 
@@ -25,3 +25,10 @@ if (decode_rgba(new Uint8Array(64 * 64 * 4).fill(255), 64, 64) !== undefined) {
   console.error("FAIL: blank frame decoded"); process.exit(1);
 }
 console.log(`ok: decoded ${size}x${size} frame in ${ms} ms`);
+
+// The OCR model loads from the extension's models/ directory and finds nothing in a blank frame.
+const reader = new DigitReader(await readFile(new URL("../extension/models/text-recognition.rten", import.meta.url)));
+if (reader.read(new Uint8Array(320 * 240 * 4).fill(255), 320, 240) !== undefined) {
+  console.error("FAIL: OCR read a code in a blank frame"); process.exit(1);
+}
+console.log("ok: OCR model loaded, blank frame has no code");

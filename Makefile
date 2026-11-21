@@ -17,19 +17,15 @@ endif
 .PHONY: all wasm models test smoke lint package clean bump-minor
 all: wasm models
 
-# OCR models (CC-BY-SA 4.0, https://github.com/robertknight/ocrs-models), fetched at *build*
+# OCR model (CC-BY-SA 4.0, https://github.com/robertknight/ocrs-models), fetched at *build*
 # time, checksum-verified, and shipped inside the extension. They are never downloaded at runtime.
 MODELS_URL := https://huggingface.co/robertknight/ocrs/resolve/main
 MODEL_DIR  := extension/models
-DET_SRC := text-detection-ssfbcj81.rten
-DET_SHA := 614aafabf27c94d386f7aa036c967c2e47e4b9938fa11531ca8f5698c1ca4c36
 REC_SRC := text-rec-checkpoint-s52qdbqt.rten
 REC_SHA := 606d9a0414c6b73c99df75b707c11c70d1c8b12e1d4f900922e185fc37bfca65
 
-models: $(MODEL_DIR)/text-detection.rten $(MODEL_DIR)/text-recognition.rten
+models: $(MODEL_DIR)/text-recognition.rten
 
-$(MODEL_DIR)/text-detection.rten:
-	$(call fetch,$(DET_SRC),$(DET_SHA),$@)
 $(MODEL_DIR)/text-recognition.rten:
 	$(call fetch,$(REC_SRC),$(REC_SHA),$@)
 
@@ -58,7 +54,7 @@ $(PKG)/qrqrqr_bg.wasm: $(WASM)
 test:
 	cargo test --release
 
-smoke: wasm
+smoke: wasm models
 	npm i --no-save qrcode
 	node scripts/wasm-smoke-test.mjs
 

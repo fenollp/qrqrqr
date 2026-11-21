@@ -3,6 +3,7 @@
 //! The JS side grabs a camera frame into a canvas and passes its raw RGBA
 //! pixels here. Everything runs locally; no network access is involved.
 
+mod finder;
 mod ocr;
 
 pub use ocr::DigitReader;
@@ -10,7 +11,7 @@ pub use ocr::DigitReader;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 /// Convert RGBA pixels to 8-bit luma (BT.601 integer approximation).
-fn to_luma(rgba: &[u8], width: usize, height: usize) -> Vec<u8> {
+pub(crate) fn to_luma(rgba: &[u8], width: usize, height: usize) -> Vec<u8> {
     let n = width * height;
     let mut out = Vec::with_capacity(n);
     for px in rgba.chunks_exact(4).take(n) {
