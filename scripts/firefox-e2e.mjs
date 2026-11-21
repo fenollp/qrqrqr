@@ -3,8 +3,12 @@
 // geckodriver; `npm i --no-save selenium-webdriver pngjs`). FIREFOX_BIN overrides the binary.
 //
 // Test-only changes are made to a temporary *copy* of extension/: a camera shim, web-accessible
-// resources (Marionette cannot navigate to moz-extension:// directly, so we go through a page
-// on http://127.0.0.1), and a lowered strict_min_version when the installed Firefox is older.
+// resources, and a lowered strict_min_version when the installed Firefox is older.
+//
+// Marionette cannot script (or navigate to) moz-extension:// pages: "browsing contexts in
+// privileged scope". So the popup is loaded in an iframe of a plain page on http://127.0.0.1,
+// and the shim inside the popup reports the scan list to that page with postMessage; the
+// driver only ever scripts the plain page.
 import { Builder } from "selenium-webdriver";
 import firefox from "selenium-webdriver/firefox.js";
 import { PNG } from "pngjs";
@@ -30,8 +34,15 @@ writeFileSync(join(ext, "blank.png"), PNG.sync.write(blank));
 frames["blank.png"] = null;
 
 writeFileSync(join(ext, "shim.js"), `
-// TEST ONLY: the camera is a still image (?frame=NAME) painted on a canvas.
-const name = new URLSearchParams(location.search).get("frame");
+// TEST ONLY: the camera is a still image (?frame=NAME) painted on a canvas, and the scan list
+// is reported to the embedding page.
+const params = new URLSearchParams(location.search);
+const name = params.get("frame");
+if (params.has("clear")) localStorage.clear();
+setInterval(() => {
+  const items = [...document.querySelectorAll("#list .text")].map((e) => e.textContent);
+  parent.postMessage({ qrqrqr: true, items }, "*");
+}, 200);
 navigator.mediaDevices.enumerateDevices = async () => [];
 navigator.mediaDevices.getUserMedia = async () => {
   const img = new Image();
@@ -47,7 +58,12 @@ const html = readFileSync(join(ext, "popup.html"), "utf8");
 writeFileSync(join(ext, "popup.html"), html.replace('<script type="module" src="popup.js">', '<script src="shim.js"></script>\n  <script type="module" src="popup.js">'));
 
 const uuid = "5b8a1c3e-0f6d-4d27-9a51-7c2e8f4b9d10";
-const server = http.createServer((_, r) => r.setHeader("content-type", "text/html").end("<title>host</title>")).listen(0, "127.0.0.1");
+const hostPage = `<!doctype html><title>host</title><iframe id="popup" width="400" height="600"></iframe>
+<script>
+  window.__items = null;
+  addEventListener("message", (e) => { if (e.data && e.data.qrqrqr) window.__items = e.data.items; });
+</script>`;
+const server = http.createServer((_, r) => r.setHeader("content-type", "text/html").end(hostPage)).listen(0, "127.0.0.1");
 await new Promise((r) => server.once("listening", r));
 const hostUrl = `http://127.0.0.1:${server.address().port}/`;
 
@@ -76,18 +92,18 @@ try {
 
   for (const [frame, expected] of Object.entries(frames)) {
     await driver.get(hostUrl);
-    await driver.executeScript(`location.href = "moz-extension://${uuid}/popup.html?tab=1&frame=${frame}"`);
-    await driver.wait(async () => (await driver.executeScript("return document.readyState")) === "complete", 5000);
-    await driver.executeScript("localStorage.clear()");
-    await driver.navigate().refresh();
+    await driver.executeScript(
+      `window.__items = null; document.getElementById("popup").src = "moz-extension://${uuid}/popup.html?tab=1&clear=1&frame=${frame}"`
+    );
     const t0 = Date.now();
     const timeout = expected ? 20000 : 6000;
-    let items = [];
+    let items = null;
     while (Date.now() - t0 < timeout) {
-      items = await driver.executeScript("return [...document.querySelectorAll('#list .text')].map((e) => e.textContent)");
-      if (items.length) break;
+      items = await driver.executeScript("return window.__items");
+      if (items && items.length) break;
       await new Promise((r) => setTimeout(r, 250));
     }
+    if (items === null) throw new Error(`${frame}: the popup never reported (did it load?)`);
     const ok = expected ? items.length === 1 && items[0] === expected : items.length === 0;
     if (!ok) failed++;
     console.log(`${ok ? "ok  " : "FAIL"} ${frame.padEnd(28)} -> ${JSON.stringify(items)} (${Date.now() - t0} ms)`);
