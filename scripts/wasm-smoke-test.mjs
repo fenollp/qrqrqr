@@ -1,7 +1,8 @@
 // Loads the built wasm exactly as the extension does and decodes a generated QR code.
-// Usage: node scripts/wasm-smoke-test.mjs   (after scripts/build.sh; needs `npm i --no-save qrcode`)
+// Usage: node scripts/wasm-smoke-test.mjs   (after `make wasm models`; needs `npm i --no-save qrcode pngjs`)
 import { readFile } from "node:fs/promises";
 import QRCode from "qrcode";
+import { PNG } from "pngjs";
 import { initSync, decode_rgba, DigitReader } from "../extension/pkg/qrqrqr.js";
 
 initSync({ module: await readFile(new URL("../extension/pkg/qrqrqr_bg.wasm", import.meta.url)) });
@@ -32,3 +33,12 @@ if (reader.read(new Uint8Array(320 * 240 * 4).fill(255), 320, 240) !== undefined
   console.error("FAIL: OCR read a code in a blank frame"); process.exit(1);
 }
 console.log("ok: OCR model loaded, blank frame has no code");
+
+// Real webcam captures of a phone showing the code 729 592 (tests/fixtures/).
+for (const name of ["phone-frame", "phone-roi", "phone-blurred-frame", "phone-blurred-roi"]) {
+  const png = PNG.sync.read(await readFile(new URL(`../tests/fixtures/${name}.png`, import.meta.url)));
+  const t = performance.now();
+  const code = reader.read(new Uint8Array(png.data.buffer, png.data.byteOffset, png.data.byteLength), png.width, png.height);
+  if (code !== "729592") { console.error(`FAIL: ${name}: got`, code); process.exit(1); }
+  console.log(`ok: ${name}.png -> ${code} in ${(performance.now() - t).toFixed(0)} ms`);
+}

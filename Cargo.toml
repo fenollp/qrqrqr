@@ -17,6 +17,7 @@ rten = { version = "0.28", default-features = false, features = ["rten_format"] 
 rten-imageproc = "0.28"
 
 [dev-dependencies]
+image = { version = "0.25", default-features = false, features = ["png"] }
 qrcode = { version = "0.14", default-features = false }
 
 [profile.release]
