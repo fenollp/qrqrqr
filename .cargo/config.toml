@@ -1,3 +1,4 @@
-# Firefox >= 140 (our strict_min_version) supports WebAssembly SIMD.
+# Firefox >= 146 supports WebAssembly relaxed SIMD (our strict_min_version is 160), which
+# rten uses for faster matrix multiplication.
 [target.wasm32-unknown-unknown]
-rustflags = ["-C", "target-feature=+simd128"]
+rustflags = ["-C", "target-feature=+simd128,+relaxed-simd"]

@@ -37,9 +37,7 @@ jobs:
         with:
           node-version: 22
 
-      - name: Test and build
-        run: |
-          make test wasm smoke lint
+      - run: make test wasm smoke lint
 
       - name: Package extension and source
         run: |

@@ -24,20 +24,15 @@ jobs:
         with:
           node-version: 22
 
-      - name: Rust tests
-        run: make test
+      - run: make test
 
-      - name: Build wasm
-        run: make wasm
+      - run: make wasm
 
-      - name: Wasm smoke test
-        run: make smoke
+      - run: make smoke
 
-      - name: web-ext lint
-        run: make lint
+      - run: make lint
 
-      - name: Package
-        run: make package
+      - run: make package
 
       - uses: actions/upload-artifact@v4
         with:
