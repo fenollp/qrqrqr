@@ -49,7 +49,7 @@ $(PKG)/qrqrqr_bg.wasm: $(WASM)
 	rm -rf $(PKG)
 	wasm-bindgen --target web --no-typescript --out-dir $(PKG) $(WASM)
 	if command -v wasm-opt >/dev/null; then \
-	  wasm-opt -Os --enable-bulk-memory --enable-nontrapping-float-to-int --enable-sign-ext --enable-simd \
+	  wasm-opt -Os --enable-bulk-memory --enable-nontrapping-float-to-int --enable-sign-ext --enable-simd --enable-relaxed-simd \
 	    --enable-mutable-globals --enable-multivalue --enable-reference-types \
 	    $@ -o $@; \
 	fi
