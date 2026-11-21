@@ -1,19 +1,15 @@
-// Runs the (slow, ~0.5 s) OCR off the popup's main thread so the camera preview stays smooth.
-// The model files are read from the extension's own models/ directory; nothing is fetched remotely.
+// Runs the OCR off the popup's main thread so the camera preview stays smooth.
+// The model file is read from the extension's own models/ directory; nothing is fetched remotely.
 import init, { DigitReader } from "./pkg/qrqrqr.js";
 
 let reader = null;
 
 async function load() {
-  const [det, rec] = await Promise.all(
-    ["models/text-detection.rten", "models/text-recognition.rten"].map(async (p) => {
-      const res = await fetch(new URL(p, import.meta.url));
-      if (!res.ok) throw new Error(`${p}: HTTP ${res.status}`);
-      return new Uint8Array(await res.arrayBuffer());
-    })
-  );
+  const res = await fetch(new URL("models/text-recognition.rten", import.meta.url));
+  if (!res.ok) throw new Error(`models/text-recognition.rten: HTTP ${res.status}`);
+  const model = new Uint8Array(await res.arrayBuffer());
   await init();
-  reader = new DigitReader(det, rec);
+  reader = new DigitReader(model);
 }
 
 const ready = load().then(

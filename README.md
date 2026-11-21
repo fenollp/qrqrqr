@@ -5,7 +5,7 @@ Click the toolbar button and point a code at your webcam. Scans pile up in a lis
 
 - **Offline.** The decoder is [`rqrr`](https://crates.io/crates/rqrr), compiled from Rust to WebAssembly and bundled with the extension. Nothing is downloaded or sent anywhere.
 - **No extension permissions.** The camera is requested with the standard `getUserMedia` prompt.
-- **Reads 6-digit 2FA codes** off a phone screen (OCR, experimental): when no QR code is in view for a second, the centre of the frame is read by [`ocrs`](https://github.com/robertknight/ocrs) (pure Rust, in the same wasm) restricted to digits. A code is accepted only if exactly six digits are read twice in a row. It runs in a Web Worker; turn it off in the add-on's options.
+- **Reads 6-digit 2FA codes** off a phone screen (OCR, experimental): when no QR code is in view for a second, the centre of the frame is read with [`ocrs`](https://github.com/robertknight/ocrs)' text-recognition model (pure Rust, in the same wasm) A cheap image-processing step finds rows of digit-sized glyphs (bright-on-dark or dark-on-light, tilted phones are fine) and only those are sent to the recognition model, so a read takes ~tens of milliseconds. A code is accepted only if exactly six digits are read twice in a row. It runs in a Web Worker; turn it off in the add-on's options.
 - Reads inverted (light-on-dark) codes, lets you pick between several cameras, and shows an *Open link* button for http(s) URLs.
 
 ## First run: granting the camera
@@ -18,7 +18,7 @@ Firefox can't show its camera permission prompt inside a toolbar popup. The firs
 rustup target add wasm32-unknown-unknown
 cargo install wasm-bindgen-cli --version 0.2.100   # must match Cargo.toml
 make test
-make models                                          # OCR models -> extension/models/ (checksummed)
+make models                                          # OCR model -> extension/models/ (checksummed)
 make                                                 # -> extension/pkg/
 ```
 
@@ -53,8 +53,9 @@ The workflow doesn't wait for review (`--approval-timeout 0`). Mozilla emails yo
 ## Layout
 
 ```
-src/lib.rs, src/ocr.rs     Rust: QR decoder and 6-digit OCR (RGBA frame -> Option<String>, + unit tests)
-extension/ocr-worker.js    runs the OCR off the UI thread, loads models from extension/models/
+src/lib.rs                 Rust: QR decoder (RGBA frame -> Option<String>, + unit tests)
+src/finder.rs, src/ocr.rs  Rust: digit-row finder and 6-digit OCR on top of ocrs' recognizer
+extension/ocr-worker.js    runs the OCR off the UI thread, loads the model from extension/models/
 extension/                 the add-on (manifest, popup UI); pkg/ is generated
 Makefile                   cargo build + wasm-bindgen (+ wasm-opt if installed); make test/smoke/lint/package
 scripts/wasm-smoke-test.mjs  loads the built wasm in Node and decodes a generated code
@@ -64,4 +65,4 @@ amo-metadata.json          AMO listing (summary, category, license, reviewer not
 
 ## License
 
-The code is MIT. The OCR models in `extension/models/` (fetched by `make models`, not stored in git) are the pretrained models of [ocrs-models](https://github.com/robertknight/ocrs-models), licensed [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) (trained on HierText, CC-BY-SA 4.0, and synthetic data); they are bundled unmodified.
+The code is MIT. The OCR model in `extension/models/` (fetched by `make models`, not stored in git) is a pretrained model of [ocrs-models](https://github.com/robertknight/ocrs-models), licensed [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) (trained on HierText, CC-BY-SA 4.0, and synthetic data); it is bundled unmodified.
