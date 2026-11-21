@@ -30,6 +30,8 @@ jobs:
 
       - run: make smoke
 
+      - run: make e2e
+
       - run: make lint
 
       - run: make package

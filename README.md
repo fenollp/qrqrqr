@@ -25,7 +25,7 @@ make                                                 # -> extension/pkg/
 Try it in Firefox: open `about:debugging#/runtime/this-firefox`, choose **Load Temporary Add-on…**, and pick `extension/manifest.json`.
 Or run `npx web-ext run --source-dir extension`.
 
-To check the built wasm from Node: `npm i --no-save qrcode && node scripts/wasm-smoke-test.mjs`.
+Tests: `make test` (Rust unit tests, plus OCR on the real phone captures in `tests/fixtures/`), `make smoke` (the built wasm in Node) and `make e2e` (the extension in headless Firefox with a still image as the camera).
 
 ## Publishing to addons.mozilla.org
 

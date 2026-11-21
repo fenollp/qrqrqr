@@ -14,7 +14,7 @@ export RUSTC_BOOTSTRAP := 1
 CARGOFLAGS += -Zbuild-std=std,panic_abort
 endif
 
-.PHONY: all wasm models test smoke lint package clean bump-minor
+.PHONY: all wasm models test smoke e2e lint package clean bump-minor
 all: wasm models
 
 # OCR model (CC-BY-SA 4.0, https://github.com/robertknight/ocrs-models), fetched at *build*
@@ -51,12 +51,18 @@ $(PKG)/qrqrqr_bg.wasm: $(WASM)
 	fi
 	ls -lh $(PKG)
 
-test:
+test: models
 	cargo test --release
 
 smoke: wasm models
-	npm i --no-save qrcode
+	npm i --no-save qrcode pngjs
 	node scripts/wasm-smoke-test.mjs
+
+# Loads the built extension in a real Firefox (headless, via geckodriver) with a still image as
+# the camera, and checks the scan list. Needs Firefox and Node; geckodriver is fetched by Selenium.
+e2e: wasm models
+	npm i --no-save selenium-webdriver pngjs
+	node scripts/firefox-e2e.mjs
 
 lint:
 	npx --yes web-ext@10 lint --source-dir extension
